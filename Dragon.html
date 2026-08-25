@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Codewyrm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10121a;
+    --bg-2: #171a26;
+    --surface: #1b1e2b;
+    --surface-2: #232739;
+    --parchment: #ece5d3;
+    --muted: #9b96a8;
+    --ember: #d9662c;
+    --verdant: #6b9e5d;
+    --amethyst: #9575c4;
+    --gold: #c9a24b;
+    --hairline: rgba(201,162,75,0.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 50% -10%, #232744 0%, transparent 55%),
+      var(--bg);
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    padding: 40px 16px 64px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color: var(--gold);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Press Start 2P', 'Cinzel', serif;
+    font-weight:400;
+    font-size: clamp(20px, 4.4vw, 30px);
+    line-height:1.4;
+    margin: 0 0 14px;
+    letter-spacing: 0.01em;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+  }
+  .tagline{
+    color: var(--muted);
+    max-width: 460px;
+    text-align:center;
+    line-height:1.5;
+    margin: 0 0 28px;
+    font-size:14.5px;
+  }
+  form{
+    display:flex;
+    gap:8px;
+    width:100%;
+    max-width: 420px;
+    margin-bottom: 36px;
+  }
+  .at{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background: var(--surface);
+    border: 2px solid var(--hairline);
+    border-radius: 4px;
+    padding: 0 12px;
+    flex:1;
+  }
+  .at span{ color: var(--muted); font-family:'JetBrains Mono',monospace; font-size:14px;}
+  input[type=text]{
+    background:transparent;
+    border:none;
+    outline:none;
+    color: var(--parchment);
+    font-family:'JetBrains Mono', monospace;
+    font-size:14px;
+    padding: 12px 0;
+    width:100%;
+  }
+  input[type=text]::placeholder{ color: #5c5870; }
+  button{
+    font-family:'Press Start 2P', 'Cinzel', serif;
+    font-weight:400;
+    letter-spacing:0.02em;
+    background: linear-gradient(180deg, #e0813f, var(--ember));
+    color: #1a1006;
+    border: 2px solid #7a3413;
+    border-radius: 4px;
+    padding: 0 20px;
+    font-size:12px;
+    cursor:pointer;
+    box-shadow: 0 3px 0 #7a3413;
+    transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  button:hover{ filter: brightness(1.08); }
+  button:active{ transform: translateY(3px); box-shadow: 0 0 0 #7a3413; }
+  button:focus-visible, input:focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+  button:disabled{ opacity:0.55; cursor:default; }
+
+  .status{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    color: var(--muted);
+    min-height: 20px;
+    margin-top:-20px;
+    margin-bottom: 20px;
+  }
+  .status.err{ color: #d97070; }
+
+  .card{
+    width: 100%;
+    max-width: 480px;
+    background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+    border: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 28px 28px 24px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .card.pulse{ animation: rise 0.4s ease; }
+  @keyframes rise{ from{ opacity:0.4; transform: translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .stage-frame{
+    position:relative;
+    border: 2px solid var(--hairline);
+    border-radius: 4px;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at 50% 65%, rgba(255,255,255,0.04), transparent 60%),
+      var(--bg);
+    padding: 8px;
+    margin-bottom: 18px;
+  }
+  svg#dragon{ display:block; width:100%; height:auto; image-rendering: pixelated; }
+  .breathe{ animation: breathe 4.5s ease-in-out infinite; transform-origin: 0px 0px; }
+  @keyframes breathe{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-3px);} }
+  .aura{ animation: pulse 3.2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity: var(--aura-lo);} 50%{ opacity: var(--aura-hi);} }
+
+  .id-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom: 4px;
+  }
+  .creature-name{
+    font-family:'Press Start 2P', 'Cinzel', serif;
+    font-weight:400;
+    font-size: 14px;
+    line-height:1.5;
+  }
+  .stage-pill{
+    font-family:'Press Start 2P', 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    color: var(--bg);
+    background: var(--gold);
+    padding: 5px 8px;
+    border-radius: 3px;
+    white-space:nowrap;
+  }
+  .flavor{
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height:1.55;
+    margin: 10px 0 22px;
+  }
+  .flavor b{ color: var(--parchment); font-weight:600; }
+
+  .stats{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .stat{
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.015);
+  }
+  .stat-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .stat-value{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight:700;
+  }
+  .stat-value.chip::before{
+    content:'';
+    display:inline-block;
+    width:9px; height:9px;
+    border-radius:2px;
+    margin-right:7px;
+    background: var(--chip-color, var(--amethyst));
+    transform: translateY(-1px);
+  }
+
+  .footnote{
+    font-size: 11.5px;
+    color: #6b6780;
+    line-height:1.6;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hairline);
+  }
+  .footnote a{ color: var(--muted); }
+
+  .leet-panel{
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+  }
+  .leet-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 10px;
+  }
+  .leet-title{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color: var(--muted);
+  }
+  .leet-reset{
+    background:none;
+    border:none;
+    padding:0;
+    color:#6b6780;
+    font-family:'Inter', sans-serif;
+    font-size: 11px;
+    text-decoration: underline;
+    cursor:pointer;
+  }
+  .leet-reset:hover{ color: var(--muted); filter:none; }
+  .leet-buttons{
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .leet-btn{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size: 13px;
+    border-radius: 4px;
+    padding: 10px 6px;
+    border: 2px solid var(--hairline);
+    background: rgba(255,255,255,0.02);
+    color: var(--parchment);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    cursor:pointer;
+    transition: filter 0.15s ease, transform 0.1s ease;
+  }
+  .leet-btn span{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    opacity:0.75;
+  }
+  .leet-btn.easy{ border-color: rgba(107,158,93,0.5); }
+  .leet-btn.easy:hover{ background: rgba(107,158,93,0.14); }
+  .leet-btn.medium{ border-color: rgba(201,162,75,0.5); }
+  .leet-btn.medium:hover{ background: rgba(201,162,75,0.14); }
+  .leet-btn.hard{ border-color: rgba(217,102,44,0.5); }
+  .leet-btn.hard:hover{ background: rgba(217,102,44,0.14); }
+  .leet-btn:active{ transform: translateY(1px); }
+  .leet-btn.logged{ filter: brightness(1.3); }
+  .leet-summary{
+    margin-top: 10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .breathe, .aura{ animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="eyebrow">codewyrm · a bestiary of your coding activity</div>
+  <h1>Grow your wyrm</h1>
+  <p class="tagline">Enter a public GitHub username, or log solved problems by hand below. Codewyrm reads GitHub straight from its public API, and keeps your manual log saved in this artifact &mdash; nothing leaves your browser.</p>
+
+  <form id="form">
+    <label class="at" for="username">
+      <span>gh/</span>
+      <input id="username" type="text" placeholder="octocat" autocomplete="off" />
+    </label>
+    <button id="go" type="submit">Hatch</button>
+  </form>
+  <div class="status" id="status"></div>
+
+  <div class="card" id="card">
+    <div class="stage-frame">
+      <svg id="dragon" viewBox="0 0 330 300" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="id-row">
+      <div class="creature-name" id="cname">Your wyrm</div>
+      <div class="stage-pill" id="cstage">Egg</div>
+    </div>
+    <div class="flavor" id="cflavor"></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Vigor · combined weight</div><div class="stat-value" id="s-vigor">0</div></div>
+      <div class="stat"><div class="stat-label">Flame · day streak</div><div class="stat-value" id="s-flame">0</div></div>
+      <div class="stat"><div class="stat-label">Territories · public repos</div><div class="stat-value" id="s-terr">&mdash;</div></div>
+      <div class="stat"><div class="stat-label">Element · top language</div><div class="stat-value chip" id="s-elem">&mdash;</div></div>
+    </div>
+
+    <div class="leet-panel">
+      <div class="leet-head">
+        <span class="leet-title">Log a solved LeetCode problem</span>
+        <button type="button" class="leet-reset" id="leet-reset">reset log</button>
+      </div>
+      <div class="leet-buttons">
+        <button type="button" class="leet-btn easy" data-diff="easy">Easy <span>+1</span></button>
+        <button type="button" class="leet-btn medium" data-diff="medium">Medium <span>+3</span></button>
+        <button type="button" class="leet-btn hard" data-diff="hard">Hard <span>+7</span></button>
+      </div>
+      <div class="leet-summary" id="leet-summary">0 problems logged</div>
+    </div>
+
+    <div class="footnote" id="footnote"></div>
+  </div>
+
+<script>
+const form = document.getElementById('form');
+const input = document.getElementById('username');
+const goBtn = document.getElementById('go');
+const statusEl = document.getElementById('status');
+const card = document.getElementById('card');
+
+const LANG_COLORS = {
+  javascript: '#e8c547', typescript: '#5b8def', python: '#4b9e7a',
+  java: '#c25b4a', 'c++': '#7b6fa8', c: '#8899a6', 'c#': '#6b4fa0',
+  go: '#4fc3d9', rust: '#d9662c', ruby: '#c0392b', php: '#7b7fc4',
+  swift: '#f0793c', kotlin: '#9b6fd1', html: '#d9662c', css: '#5b8def',
+  shell: '#6b9e5d', vue: '#6b9e5d', dart: '#4fc3d9', scala: '#c25b4a',
+  jupyter_notebook: '#e8c547', default: '#9575c4'
+};
+
+const STAGES = [
+  { name: 'Egg', min: 0, scale: 1.15, wings: 0, horns: 0, spikes: 0, tailLen: 0,
+    desc: 'Dormant. Nothing logged yet &mdash; connect a GitHub username above, or log a solved problem below, to begin the hatch.' },
+  { name: 'Hatchling', min: 1, scale: 1.0, wings: 0, horns: 0, spikes: 1, tailLen: 4,
+    desc: 'Freshly cracked. A stub tail and a first spine ridge have appeared.' },
+  { name: 'Drakeling', min: 10, scale: 1.0, wings: 1, horns: 0, spikes: 2, tailLen: 6,
+    desc: 'Wing-nubs have unfurled enough for short glides. Still hornless.' },
+  { name: 'Young Dragon', min: 25, scale: 1.05, wings: 2, horns: 1, spikes: 3, tailLen: 8,
+    desc: 'A first pair of horns has grown in, and the tail has lengthened considerably.' },
+  { name: 'Elder Dragon', min: 50, scale: 1.1, wings: 2, horns: 2, spikes: 4, tailLen: 10,
+    desc: 'Broad-winged and heavily spined. A serious, sustained effort.' },
+  { name: 'Ancient Wyrm', min: 100, scale: 1.15, wings: 3, horns: 3, spikes: 5, tailLen: 12,
+    desc: 'Fully matured. A crowned ridge and full wingspan mark heavy, sustained activity.' },
+];
+
+const LEET_WEIGHTS = { easy: 1, medium: 3, hard: 7 };
+const LEET_KEY = 'leetcode_log';
+
+// githubState is null until a username is hatched successfully.
+let githubState = null;
+// leetcodeState persists across sessions via window.storage.
+let leetcodeState = { easy: 0, medium: 0, hard: 0, dates: [] };
+
+function stageFor(commits){
+  let s = STAGES[0];
+  for (const st of STAGES) if (commits >= st.min) s = st;
+  return s;
+}
+
+function pt(x,y){ return `${x.toFixed(1)},${y.toFixed(1)}`; }
+
+/* ---------- pixel-art dragon ---------- */
+
+const GRID_COLS = 30, GRID_ROWS = 22, CELL = 10;
+
+function shade(hex, percent){
+  hex = hex.replace('#','');
+  let r = parseInt(hex.substring(0,2),16), g = parseInt(hex.substring(2,4),16), b = parseInt(hex.substring(4,6),16);
+  const amt = Math.round(2.55*percent);
+  const clamp = v => Math.min(255, Math.max(0, v+amt));
+  r = clamp(r); g = clamp(g); b = clamp(b);
+  return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+function makeGrid(){
+  return Array.from({length: GRID_ROWS}, () => Array(GRID_COLS).fill(null));
+}
+function setPx(grid,x,y,val){
+  if(y>=0 && y<GRID_ROWS && x>=0 && x<GRID_COLS) grid[y][x] = val;
+}
+function fillEllipsePx(grid,cx,cy,rx,ry,val){
+  for(let y=Math.floor(cy-ry); y<=Math.ceil(cy+ry); y++){
+    for(let x=Math.floor(cx-rx); x<=Math.ceil(cx+rx); x++){
+      const nx=(x-cx)/rx, ny=(y-cy)/ry;
+      if(nx*nx+ny*ny<=1) setPx(grid,x,y,val);
+    }
+  }
+}
+function fillRectPx(grid,x0,y0,x1,y1,val){
+  for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) setPx(grid,x,y,val);
+}
+function fillPointsPx(grid, points, val){
+  points.forEach(([x,y]) => setPx(grid,x,y,val));
+}
+function fillTrianglePx(grid, p0,p1,p2, val){
+  const pts = [p0,p1,p2].slice().sort((a,b)=>a[1]-b[1]);
+  const [A,B,C] = pts;
+  function interp(y, P, Q){
+    if(Q[1]===P[1]) return P[0];
+    const t = (y-P[1])/(Q[1]-P[1]);
+    return P[0] + t*(Q[0]-P[0]);
+  }
+  const yTop = Math.round(A[1]), yBot = Math.round(C[1]);
+  for(let y=yTop; y<=yBot; y++){
+    let xa = interp(y, A, C);
+    let xb = (y < B[1]) ? interp(y, A, B) : interp(y, B, C);
+    const xStart = Math.round(Math.min(xa,xb));
+    const xEnd = Math.round(Math.max(xa,xb));
+    for(let x=xStart; x<=xEnd; x++) setPx(grid,x,y,val);
+  }
+}
+
+const TAIL_PATH = [[20,12],[21,12],[22,13],[23,13],[23,14],[24,14],[24,15],[25,15],[25,16],[26,16],[26,17],[27,17]];
+const SPIKE_SLOTS = [8,11,14,17,20];
+
+function buildCreatureGrid(stage){
+  const grid = makeGrid();
+  const isEgg = stage.name === 'Egg';
+
+  if(isEgg){
+    fillEllipsePx(grid, 14,12, 5,6, 'g');
+    fillEllipsePx(grid, 14,15, 4,3, 'gs');
+    fillPointsPx(grid, [[12,7],[13,8],[12,9]], 'o');
+    fillPointsPx(grid, [[16,14],[17,13]], 'o');
+    fillPointsPx(grid, [[11,11],[16,10],[14,17]], 'b');
+    return grid;
+  }
+
+  // body
+  fillEllipsePx(grid, 14,12, 6,4.5, 'b');
+  fillEllipsePx(grid, 13,13.5, 3,2, 'l');
+  // head
+  fillEllipsePx(grid, 6,9, 3.2,3.2, 'b');
+  fillRectPx(grid, 6,7, 9,11, 'b');
+  fillRectPx(grid, 2,9, 5,10, 'b');
+  setPx(grid, 2,9, 'd'); setPx(grid, 2,10, 'd');
+  setPx(grid, 4,8, 'p');
+  // legs
+  fillRectPx(grid, 9,15, 10,18, 'd');
+  fillRectPx(grid, 18,15, 19,18, 'd');
+
+  // tail (thicker near the body, tapering toward the tip)
+  const tailLen = stage.tailLen;
+  for(let i=0;i<tailLen;i++){
+    const [x,y] = TAIL_PATH[i];
+    const col = i >= tailLen-2 ? 'd' : 'b';
+    setPx(grid, x, y, col);
+    if(i < tailLen-3) setPx(grid, x, y-1, col);
+  }
+  if(stage.hasFlame && tailLen>0){
+    const [tx,ty] = TAIL_PATH[tailLen-1];
+    fillPointsPx(grid, [[tx+1,ty],[tx+1,ty-1],[tx+2,ty]], 'f');
+  }
+
+  // spikes: solid triangles seated directly on the body's top edge
+  for(let i=0;i<Math.min(stage.spikes, SPIKE_SLOTS.length); i++){
+    const x = SPIKE_SLOTS[i];
+    fillTrianglePx(grid, [x-1,8],[x+1,8],[x,5], 'h');
+  }
+
+  // horns: solid triangles seated on the head's top edge
+  if(stage.horns>=1) fillTrianglePx(grid, [5,6],[7,6],[6,2], 'h');
+  if(stage.horns>=2) fillTrianglePx(grid, [7,7],[9,7],[9,4], 'h');
+  if(stage.horns>=3){
+    fillTrianglePx(grid, [3,7],[5,7],[3,5], 'h');
+    fillTrianglePx(grid, [5,6],[7,6],[6,1], 'h');
+  }
+
+  // wings: solid triangles fanning from the back, not floating pixels
+  if(stage.wings>=1){
+    fillTrianglePx(grid, [14,9],[16,9],[22,5], 'w');
+    fillTrianglePx(grid, [14,9],[12,9],[8,5], 'w');
+  }
+  if(stage.wings>=2){
+    fillTrianglePx(grid, [15,8],[17,9],[24,3], 'w');
+    fillTrianglePx(grid, [13,8],[11,9],[6,3], 'w');
+  }
+  if(stage.wings>=3){
+    fillTrianglePx(grid, [16,7],[18,8],[26,1], 'w');
+    fillTrianglePx(grid, [12,7],[10,8],[4,1], 'w');
+  }
+
+  return grid;
+}
+
+function addOutline(grid){
+  const outline = makeGrid();
+  for(let y=0;y<GRID_ROWS;y++){
+    for(let x=0;x<GRID_COLS;x++){
+      if(grid[y][x]) continue;
+      const nb = [[x-1,y],[x+1,y],[x,y-1],[x,y+1],[x-1,y-1],[x+1,y-1],[x-1,y+1],[x+1,y+1]];
+      for(const [nx,ny] of nb){
+        if(ny>=0 && ny<GRID_ROWS && nx>=0 && nx<GRID_COLS && grid[ny][nx]){ outline[y][x] = 'o'; break; }
+      }
+    }
+  }
+  return outline;
+}
+
+function gridToRects(grid, palette){
+  let out = '';
+  for(let y=0;y<GRID_ROWS;y++){
+    for(let x=0;x<GRID_COLS;x++){
+      const key = grid[y][x];
+      if(!key) continue;
+      out += `<rect x="${x*CELL}" y="${y*CELL}" width="${CELL}" height="${CELL}" fill="${palette[key]}"/>`;
+    }
+  }
+  return out;
+}
+
+function buildDragon(stage, langColor, streakDays){
+  const s = stage.scale;
+  const auraOpLo = Math.min(0.14 + streakDays*0.02, 0.4);
+  const auraOpHi = Math.min(0.26 + streakDays*0.035, 0.75);
+  const isEgg = stage.name === 'Egg';
+  const auraColor = isEgg ? '#c9a24b' : langColor;
+
+  const palette = {
+    b: langColor,
+    d: shade(langColor, -35),
+    l: '#f4eede',
+    w: shade(langColor, -50),
+    h: '#e9e3d3',
+    p: '#0c0c10',
+    f: '#ffcf6b',
+    g: '#f0e9d6',
+    gs: shade('#f0e9d6', -20),
+    o: '#0a0910',
+  };
+
+  const creatureGrid = buildCreatureGrid({ ...stage, hasFlame: streakDays >= 7 });
+  const outlineGrid = addOutline(creatureGrid);
+  const pixels = gridToRects(outlineGrid, palette) + gridToRects(creatureGrid, palette);
+
+  const ax = 165, ay = 240;
+  const tx = ax - 150*s;
+  const ty = ay - 190*s;
+
+  return `
+  <defs>
+    <radialGradient id="auraGrad" cx="50%" cy="60%" r="60%">
+      <stop offset="0%" stop-color="${auraColor}" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="${auraColor}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <ellipse class="aura" cx="${ax}" cy="${ay-2}" rx="${58*s+24}" ry="${12*s+6}" fill="url(#auraGrad)"
+    style="--aura-lo:${auraOpLo};--aura-hi:${auraOpHi}"/>
+
+  <g transform="translate(${tx.toFixed(1)},${ty.toFixed(1)}) scale(${s})" shape-rendering="crispEdges">
+    <g class="breathe">
+      ${pixels}
+    </g>
+  </g>
+  `;
+}
+
+
+function topLanguage(repos){
+  const counts = {};
+  for(const r of repos){
+    if(!r.language) continue;
+    counts[r.language] = (counts[r.language]||0) + 1;
+  }
+  let best = null, bestN = 0;
+  for(const k in counts){ if(counts[k] > bestN){ best = k; bestN = counts[k]; } }
+  return best;
+}
+
+function distinctLanguageCount(repos){
+  const set = new Set();
+  repos.forEach(r => { if(r.language) set.add(r.language); });
+  return set.size;
+}
+
+function computeStreak(dates){
+  // dates: Set of 'YYYY-MM-DD' strings with activity
+  let streak = 0;
+  let cursor = new Date();
+  // allow "today" to not count against streak if no activity yet today
+  const todayStr = cursor.toISOString().slice(0,10);
+  if(!dates.has(todayStr)) cursor.setDate(cursor.getDate()-1);
+  while(true){
+    const ds = cursor.toISOString().slice(0,10);
+    if(dates.has(ds)){ streak++; cursor.setDate(cursor.getDate()-1); }
+    else break;
+    if(streak > 400) break;
+  }
+  return streak;
+}
+
+async function fetchJSON(url){
+  const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
+  if(!res.ok){
+    if(res.status === 404) throw new Error("That GitHub username doesn't exist.");
+    if(res.status === 403) throw new Error('GitHub API rate limit hit — try again in a few minutes.');
+    throw new Error('GitHub API error (' + res.status + ').');
+  }
+  return res.json();
+}
+
+async function hatch(username){
+  statusEl.className = 'status';
+  statusEl.textContent = 'Fetching public activity from GitHub…';
+  goBtn.disabled = true;
+
+  try{
+    const user = await fetchJSON(`https://api.github.com/users/${encodeURIComponent(username)}`);
+    const events = await fetchJSON(`https://api.github.com/users/${encodeURIComponent(username)}/events/public?per_page=100`);
+    const repos = await fetchJSON(`https://api.github.com/users/${encodeURIComponent(username)}/repos?sort=pushed&per_page=30`);
+
+    let commitCount = 0;
+    let mergedPRs = 0;
+    const activeDates = [];
+    events.forEach(ev => {
+      const d = ev.created_at ? ev.created_at.slice(0,10) : null;
+      if(d) activeDates.push(d);
+      if(ev.type === 'PushEvent' && ev.payload){
+        if(Array.isArray(ev.payload.commits)) commitCount += ev.payload.commits.length;
+        else if(typeof ev.payload.size === 'number') commitCount += ev.payload.size;
+      }
+      if(ev.type === 'PullRequestEvent' && ev.payload && ev.payload.action === 'closed'
+         && ev.payload.pull_request && ev.payload.pull_request.merged){
+        mergedPRs += 1;
+      }
+    });
+    // A merge via the web UI never shows as a PushEvent, so it's counted
+    // separately and folded in as commit-equivalent weight (a merge usually
+    // bundles several commits' worth of work).
+    const vigor = commitCount + mergedPRs * 4;
+    const lang = topLanguage(repos);
+    const langKey = lang ? lang.toLowerCase().replace(/\s+/g,'_') : 'default';
+
+    githubState = {
+      username: user.login,
+      vigor, mergedPRs,
+      activeDates,
+      lang, langColor: LANG_COLORS[langKey] || LANG_COLORS.default,
+      repoCount: user.public_repos ?? repos.length,
+    };
+
+    render(true);
+    statusEl.textContent = '';
+  }catch(err){
+    statusEl.className = 'status err';
+    statusEl.textContent = err.message || 'Something went wrong.';
+  }finally{
+    goBtn.disabled = false;
+  }
+}
+
+function leetPoints(){
+  return leetcodeState.easy*LEET_WEIGHTS.easy + leetcodeState.medium*LEET_WEIGHTS.medium + leetcodeState.hard*LEET_WEIGHTS.hard;
+}
+
+function render(justHatched){
+  const vigor = (githubState ? githubState.vigor : 0) + leetPoints();
+  const combinedDates = new Set([
+    ...(githubState ? githubState.activeDates : []),
+    ...leetcodeState.dates,
+  ]);
+  const streak = computeStreak(combinedDates);
+  const lang = githubState ? githubState.lang : null;
+  const langColor = githubState ? githubState.langColor : LANG_COLORS.default;
+  const stage = stageFor(vigor);
+
+  document.getElementById('dragon').innerHTML = buildDragon(stage, langColor, streak);
+  document.getElementById('cname').textContent = githubState ? `${githubState.username}'s wyrm` : 'Your wyrm';
+  document.getElementById('cstage').textContent = stage.name;
+  document.getElementById('cflavor').innerHTML = stage.desc + (streak>0 ? ` Currently on a <b>${streak}-day</b> activity streak.` : '');
+  document.getElementById('s-vigor').textContent = vigor;
+  document.getElementById('s-flame').textContent = streak;
+  document.getElementById('s-terr').textContent = githubState ? githubState.repoCount : '—';
+  const elemEl = document.getElementById('s-elem');
+  elemEl.textContent = lang || 'Unaligned';
+  elemEl.style.setProperty('--chip-color', langColor);
+
+  const leetTotal = leetcodeState.easy + leetcodeState.medium + leetcodeState.hard;
+  document.getElementById('leet-summary').textContent =
+    leetTotal === 0 ? '0 problems logged'
+    : `${leetTotal} problem${leetTotal===1?'':'s'} logged — ${leetcodeState.easy} easy · ${leetcodeState.medium} medium · ${leetcodeState.hard} hard (+${leetPoints()} vigor)`;
+
+  const parts = [];
+  if(githubState){
+    parts.push(`GitHub: last ~90 days of public activity for @${githubState.username}` + (githubState.mergedPRs>0 ? ` (includes ${githubState.mergedPRs} merged PR${githubState.mergedPRs===1?'':'s'})` : '') + '.');
+  }
+  if(leetTotal>0){
+    parts.push(`LeetCode log: ${leetTotal} solve${leetTotal===1?'':'s'} weighted ${LEET_WEIGHTS.easy}/${LEET_WEIGHTS.medium}/${LEET_WEIGHTS.hard} for easy/medium/hard, saved locally to this artifact.`);
+  }
+  document.getElementById('footnote').textContent = parts.length
+    ? parts.join(' ')
+    : 'Connect a GitHub username or log a solve below to start tracking.';
+
+  if(justHatched){
+    card.classList.remove('pulse');
+    void card.offsetWidth;
+    card.classList.add('pulse');
+  }
+}
+
+async function loadLeetcodeState(){
+  try{
+    const res = await window.storage.get(LEET_KEY, false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      leetcodeState = {
+        easy: parsed.easy||0, medium: parsed.medium||0, hard: parsed.hard||0,
+        dates: Array.isArray(parsed.dates) ? parsed.dates : [],
+      };
+    }
+  }catch(e){
+    // no saved log yet — start fresh
+  }
+}
+
+async function saveLeetcodeState(){
+  try{
+    await window.storage.set(LEET_KEY, JSON.stringify(leetcodeState), false);
+  }catch(e){
+    console.error('Could not save LeetCode log', e);
+  }
+}
+
+function logSolve(difficulty){
+  leetcodeState[difficulty] += 1;
+  leetcodeState.dates.push(new Date().toISOString().slice(0,10));
+  saveLeetcodeState();
+  render(true);
+}
+
+document.querySelectorAll('.leet-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    logSolve(btn.dataset.diff);
+    btn.classList.remove('logged');
+    void btn.offsetWidth;
+    btn.classList.add('logged');
+  });
+});
+
+document.getElementById('leet-reset').addEventListener('click', () => {
+  if(!confirm('Clear your logged LeetCode solves? This can\'t be undone.')) return;
+  leetcodeState = { easy: 0, medium: 0, hard: 0, dates: [] };
+  saveLeetcodeState();
+  render(false);
+});
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const u = input.value.trim().replace(/^@/,'');
+  if(!u){ statusEl.className='status err'; statusEl.textContent='Enter a GitHub username first.'; return; }
+  hatch(u);
+});
+
+(async function init(){
+  await loadLeetcodeState();
+  render(false);
+})();
+</script>
+</body>
+</html>
